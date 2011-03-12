@@ -1,0 +1,31 @@
+desc: memo for dcsp :abbrev: directory for C# practice
+
+date: 10;2011/3/11 (fri)
+
+date: 11;2011/3/12 (sat)
+
+card.cs で PlayingCard [] deck を shuffle する ... 参照型か？
+構造体は値型。列挙型も。
+クラスは参照型。文字列、配列、デリゲート、インタフェイスも。
+
+shuffle ... Array 型に対して定義しておいて、
+呼ぶ時は (Array)deck という風にキャストすればok, というのはうまく行くか？
+
+配列の to_s, shuffle を書きたい ... array に対する wrap が要る？
+class Wrarray :abbrev: wrap array
+- 単純に継承するだけだと普通の配列をそれ向けに cast できるか不安 ... やってみそ
+- Array でなく Object [] を使っても同じ？
+- vvv wrap までしなくとも、 Object [] を引数にとるようなやつを書いておけば？
+  vvv class ArrayFunctions (using AF = ArrayFunctions で略称化)
+  vvv を作っておいて、その中に入れるとか？
+  public static string to_s(Object [] a)
+  public static void shuffle(Object [] a)
+
+afs.cs ... 配列用の関数 ... なんとか使い物になるライブラリが書けた。
+
+デリゲート delegate を使えば map とかの高階関数も書けそうだ。
+汎用デリゲート generic delegate を使えば一般化して afs.cs に加えられそうだ。
+
+アクセス修飾子なしで class やメンバを書いたら(class C {..} etc.) private になる。
+cf. http://www.kisoplus.com/kihon/acc.html ... google: c# アクセス修飾子 省略
+
