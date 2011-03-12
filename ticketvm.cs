@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 // まず delegate を使わずに書いてみる。
 class Simulator {
   static void Main() {
-    TVM tvm = new TVM();
+    TVM tvm = new TVM(1000);
     while (true) {
       tvm.run();
       if (tvm.state == TVM.State.END) { break; }
@@ -33,6 +33,8 @@ class TVM {
   string [] buttons = { "A", "B", "C", "D", "E", "cancel", "exit" };
   int [] prices = { 120, 150, 180, 210, 260 };
   int coin_total = 0;
+  int coin_upp; // 内部に貯めておける金額の上限
+  public TVM(int u) { coin_upp = u; }
   public void run() {
     switch (private_state) {
     case State.START :
@@ -79,6 +81,11 @@ class TVM {
 	  Console.WriteLine("I can't deal {0} yen coins.", c);
 	} else {
 	  coin_total += c;
+	  if (coin_total > coin_upp) {
+	    Console.WriteLine("I can't store money more than {0} yen.",
+			      coin_upp);
+	    coin_total -= c;
+	  }
 	}
       } else if ( r_button.IsMatch(action) ) {
 	// (2) ボタンを押した場合
