@@ -12,11 +12,13 @@ enum Suit { SPADE, HEART, CLUB, DIAMOND };
 // int  [] nums;
 
 class PlayingCard {
+}
+class NormalCard : PlayingCard {
   Suit   suit;
   int    num;
   string suit_str;
   string num_str;
-  public PlayingCard(Suit s, int n) {
+  public NormalCard(Suit s, int n) {
     suit = s;
     num  = n;
     switch (suit) {
@@ -35,21 +37,29 @@ class PlayingCard {
   }
   public override string ToString() { return suit_str + num_str; }
 }
+class JokerCard : PlayingCard {
+  string name;
+  public JokerCard(string n) { name = n; }
+  public override string ToString() { return String.Format("J{0}", name); }
+}
 
 class GenDeck {
   static void Main() {
     Array suits          = Enum.GetValues(typeof(Suit));
     int [] nums          = { 1,2,3,4,5,6,7,8,9,10,11,12,13 };
-    PlayingCard [] deck  = new PlayingCard [ suits.Length * nums.Length ];
+    PlayingCard [] deck  = new PlayingCard [ suits.Length * nums.Length + 2 ];
     int i                = 0; // index for deck
     AFs<PlayingCard> afs = new AFs<PlayingCard>();
     // deck の中身を詰める。
     foreach(Suit s in suits) {
       foreach(int n in nums) {
-        deck[i] = new PlayingCard(s,n);
+        deck[i] = new NormalCard(s,n);
         i++;
       }
     }
+    deck[i  ] = new JokerCard("!");
+    deck[i+1] = new JokerCard("?");
+    // 遊ぶ。
     Console.WriteLine( afs.to_s(deck) );
     afs.shuffle(deck);
     Console.WriteLine( afs.to_s(deck) );

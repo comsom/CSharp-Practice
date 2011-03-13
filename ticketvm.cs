@@ -1,4 +1,4 @@
-// desc: 券売機 ticket-vending machine シミュレータ ... delegate の練習。
+// desc: 券売機 ticket-vending machine シミュレータ ... delegate の練習 ... してない
 
 // ticketvm tvm :abbrev: ticket-vending machine
 
@@ -29,7 +29,7 @@ class Simulator {
 class TVM {
   public enum State { START, WAIT, END };
   State private_state = State.START;
-  public State state { get { return private_state; } }
+  public State state { get { return private_state; } } // プロパティ property
   string [] buttons = { "A", "B", "C", "D", "E", "cancel", "exit" };
   int [] prices = { 120, 150, 180, 210, 260 };
   int coin_total = 0;

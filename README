@@ -1,0 +1,10 @@
+desc: README for this directory  ...  各ファイルの説明
+
+synopses of files
+hello.cs     ... "Hello, World!", and test the features of C#.
+afs.cs       ... A library for Array FunctionS.
+card.cs      ... Generates and shuffles the 52 playing cards with 2 jokers.
+ticketvm.cs  ... A simulator for the ticket-vending machine.
+memo.note    ... Memo.
+
+
