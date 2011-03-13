@@ -90,15 +90,14 @@ class SudokuSolve {
 // SudokuSolver
 //------------------------------------------------------------------------------
 class SudokuSolver {
-  // - board と、埋めねばならない位置のリスト fillpos と, list placeable_flags と,
-  //   guess (num)の列と、「次に埋める位置 pos」を保持する。
+  // - board と、埋めねばならない位置のリスト fillpos と、
+  //   guess (num)の列と、次に埋める位置を指す pos_i を保持する。
   // - placeable_flags : 初期盤面にて数字が置かれていない各マスに対し9本の flag を置く。
   //   そのマスに置けるかもしれない数字に対しては true, さもなくば false とする。
   // - 盤面が固定されてるので、各マスに対して始めに placeable_flags を計算しておく。
   static Range9 r = new Range9();
   int [,] board;
   List<Pos>    fillpos         = new List<Pos>(); // 埋めねばならない位置のリスト
-  List<bool[]> placeable_flags = new List<bool[]>();
   List<int>    guess_seq       = new List<int>();
   int pos_i;
 
@@ -106,7 +105,6 @@ class SudokuSolver {
   public SudokuSolver(int [,] b) {
     board = b;
     init_fillpos();
-    init_placeable_flags();
     pos_i = 0; // fillpos, placeable_flags の index.
   }
   void init_fillpos() {
@@ -116,16 +114,16 @@ class SudokuSolver {
       }
     }
   }
-  void init_placeable_flags() {
-    foreach(int [] pos in fillpos) {
-      bool [] flags = { true,true,true,true,true,true,true,true,true };
-      int i=pos.r, j=pos.c;
-      check_rect_area(flags, i,      j,       1,9);
-      check_rect_area(flags, i,      j,       9,1);
-      check_rect_area(flags, (i/3)*3,(j/3)*3, 3,3);
-      placeable_flags.Add( flags );
-    }
-  }
+  //void init_placeable_flags() {
+  //  foreach(int [] pos in fillpos) {
+  //    bool [] flags = { true,true,true,true,true,true,true,true,true };
+  //    int i=pos.r, j=pos.c;
+  //    check_rect_area(flags, i,      j,       1,9);
+  //    check_rect_area(flags, i,      j,       9,1);
+  //    check_rect_area(flags, (i/3)*3,(j/3)*3, 3,3);
+  //    placeable_flags.Add( flags );
+  //  }
+  //}
   void check_rect_area(bool[] flags, int top, int left, int nrow, int ncol) {
     // top, left, nrow, ncol で指定される四角形内を見る。
     for(i=top; i<top+nrow; i++) {
@@ -148,33 +146,46 @@ class SudokuSolver {
 
   // ---------------------- putnum ----------------------
   public void putnum() {
-    // fillpos[pos_i] の位置に数字を置く。
-    // pos を見る。
-    // - 可能な guess があればそれを push する。
-    //   pos_i++;
-    //   関連するマスの placeable_flags に修正を加える。
-    // - なければ直前の guess が失敗だったことになるので pop してその guess を取る。
-    //   guess.pos を見て board を元に戻し、
-    //   guess.num を見てその flag を false にする。
-    //   pos_i--;
-    // - pop ができなかった場合、問題は解けないことになる。
-    bool [] flags = placeable_flags[pos_i];
-    Pos pos       = fillpos[pos_i];
-    if( is_anytrue(flags) ) {
-      int num = flags.IndexOf(true);
-      guess_seq.Add( num );           // guess の追加。
-      board[pos.r, pos.c] = num;      // board への書き込み。
-      update_related_flags(pos, num); // flags の更新。
-      pos_i++;                        // pos_i のインクリメント。
-    } else { // fillpos[pos_i] の位置に置ける数字がなかった場合。
-      if ( guess_seq.Count > 0 ) {
-	// ****** 盤面は戻せても flags は元に戻せない ******
-	// 倒される前の20マスの flags の値を保持しておかねば。
-	pos_i--;
-      } else {
-	
-      }
-    }
+    // - fillpos[pos_i] を見る。
+    //   old_guess (最初は0)より大きい9以下の、
+    //   同行・同列・同ブロックにあるどの数とも異なる数を見つける。
+    // - そういう数があった場合、それを guess に push. pos_i++;
+    // - なかった場合、 guess を pop して old_guess に代入する。 pos_i--;
+    
+    
+
+
+    //// fillpos[pos_i] の位置に数字を置く。
+    //// pos を見る。
+    //// - 可能な guess があればそれを push する。
+    ////   pos_i++;
+    ////   関連するマスの placeable_flags に修正を加える。
+    //// - なければ直前の guess が失敗だったことになるので pop してその guess を取る。
+    ////   guess.pos を見て board を元に戻し、
+    ////   guess.num を見てその flag を false にする。
+    ////   pos_i--;
+    //// - pop ができなかった場合、問題は解けないことになる。
+    //
+    //// - flags を保持するのは止める。
+    ////   guess は「今までに試した数より大きい数」から選べばよい。
+    //
+    //bool [] flags = placeable_flags[pos_i];
+    //Pos pos       = fillpos[pos_i];
+    //if( is_anytrue(flags) ) {
+    //  int num = flags.IndexOf(true);
+    //  guess_seq.Add( num );           // guess の追加。
+    //  board[pos.r, pos.c] = num;      // board への書き込み。
+    //  update_related_flags(pos, num); // flags の更新。
+    //  pos_i++;                        // pos_i のインクリメント。
+    //} else { // fillpos[pos_i] の位置に置ける数字がなかった場合。
+    //  if ( guess_seq.Count > 0 ) {
+    //	// ****** 盤面は戻せても flags は元に戻せない ******
+    //	// 倒される前の20マスの flags の値を保持しておかねば。
+    //	pos_i--;
+    //  } else {
+    //	
+    //  }
+    //}
   }
   void update_related_flags(Pos pos, int num) {
     // pos と同行・同列・同ブロックにある各マスにある flags の
@@ -209,15 +220,6 @@ class Pos {
 //  public int num { get { return private_num; } }
 //}
 
-// topleft pos に対し bool [] placeable_flags = new bool [9]; を割り当てる。
-// 一番小さい placeable_num を打つ ...
-// - その pos と上記の placeable_flags と置いた数 placeable_num を stack にのせる。
-// もし placeable_num がなければ(placeable_flags がすべて false のとき)、
-// - stack から pop して pos にある数字を消す。
-//   placeable_flags 内の placeable_num に対する flag を false にする。
-// - stack が空なら could not solve.
 
 
 
-
-// 埋めねばならぬ位置 pos の全体は List で管理する。
