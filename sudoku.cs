@@ -1,6 +1,6 @@
-// desc: backtrack の練習のため数独を解かせる ; 理詰めゼロで ; 再帰無しで。
+// desc: backtrack の練習のため数独を解かせる ; 理詰めありで ; 再帰無しで。
 
-// date: 11;2011/3/13 (sun)     ... 今日中に出来るか？
+// date: 12;2011/3/20 (sun)
 // command: gmcs sudoku.cs && mono sudoku.exe
 
 // vvvvvv 動作例 vvvvvv
@@ -52,9 +52,9 @@ class Range9 {
 //  }
 //}    
 
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Ary2d, ListFun
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 class Ary2d { // abbrev: Array of 2-dimentions
   public static string to_sbs(int[,] ary2d) { // abbrev: to sudoku board string
     string res = "begin\n";
@@ -81,9 +81,9 @@ class ListFun <T> {
   }
 }
 
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // Main
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 class SudokuSolve {
   static void Main() {
     int[,] board = {
@@ -113,31 +113,31 @@ class SudokuSolve {
       // { 0,7,0, 0,0,9, 0,4,0 },
       // { 5,3,0, 0,0,0, 0,0,0 },
 
-      // // 例題：まっさら ... SudokuSolver は解を1つだけ見つける。
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // 			     
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // 			     
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
-      // { 0,0,0, 0,0,0, 0,0,0 },
+      // 例題：まっさら ... SudokuSolver は解を1つだけ見つける。
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
+      			     
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
+      			     
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
+      { 0,0,0, 0,0,0, 0,0,0 },
 
-      // 例題 from 「レベル判定 IQナンプレ300 vol.2」の問題300(最後の問題)
-      { 0,0,0, 0,9,0, 0,0,0 },
-      { 0,2,0, 0,0,0, 0,7,0 },
-      { 0,0,1, 7,0,8, 3,0,0 },
-			     
-      { 0,0,5, 0,0,0, 8,0,0 },
-      { 4,0,0, 0,6,0, 0,0,9 },
-      { 0,0,3, 0,0,0, 4,0,0 },
-			     
-      { 0,0,2, 8,0,5, 1,0,0 },
-      { 0,1,0, 0,0,0, 0,3,0 },
-      { 0,0,0, 0,2,0, 0,0,0 },
+      // // 例題 from 「レベル判定 IQナンプレ300 vol.2」の問題300(最後の問題)
+      // { 0,0,0, 0,9,0, 0,0,0 },
+      // { 0,2,0, 0,0,0, 0,7,0 },
+      // { 0,0,1, 7,0,8, 3,0,0 },
+      // 			     
+      // { 0,0,5, 0,0,0, 8,0,0 },
+      // { 4,0,0, 0,6,0, 0,0,9 },
+      // { 0,0,3, 0,0,0, 4,0,0 },
+      // 			     
+      // { 0,0,2, 8,0,5, 1,0,0 },
+      // { 0,1,0, 0,0,0, 0,3,0 },
+      // { 0,0,0, 0,2,0, 0,0,0 },
     };
     SudokuSolver ss = new SudokuSolver(board);
 
@@ -150,13 +150,14 @@ class SudokuSolve {
       if ( ss.isend() ) {
 	// 解を表示して終わり。
 	Console.WriteLine( "\n--- Solution ---" );
-	Console.WriteLine( Ary2d.to_sbs(board) );
+	Console.WriteLine( Ary2d.to_sbs(ss.show_board()) );
 	break;
       } else if ( ss.cannot_sovle_flag==true ) {
 	Console.WriteLine( "\nCould not solve." );
 	break;
       } else {
     	ss.putnum();
+	//Console.WriteLine( "\ndebugwrite after putnum : " + Ary2d.to_sbs(ss.show_board()) );
       }
     }
 
@@ -164,32 +165,130 @@ class SudokuSolve {
   }
 }
 
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 // SudokuSolver
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 class SudokuSolver {
-  // - board と、埋めねばならない位置のリスト fillpos と、
-  //   次に埋める位置を指す pos_i を保持する。
-  int [,] board;
-  List<Pos> fillpos = new List<Pos>(); // 埋めねばならない位置のリスト
-  int pos_i;
+  // - 盤面 board と、 flagseq の盤 fsboard と、
+  //   それらを保持するスタック board_stack, fsboard_stack を持つ。
+  // - board[i,j]>0 なら, fsboard[i,j] の値は don't care (見ない・考えない)とする。
+  int     [,] board   = new int     [ Range9.length, Range9.length ];
+  FlagSeq [,] fsboard = new FlagSeq [ Range9.length, Range9.length ];
+  List<int[,]>     board_stack   = new List<int[,]>();
+  List<FlagSeq[,]> fsboard_stack = new List<FlagSeq[,]>();
   bool private_cannot_sovle_flag = false; // 解けないと分かったときに立てる。
   public bool cannot_sovle_flag { get { return private_cannot_sovle_flag; } }
+  // 表示用のメソッド
+  public int [,] show_board() { return board; }
 
   // ---------------------- Constructor ----------------------
   public SudokuSolver(int [,] b) {
-    // ListFun<Pos> lf = new ListFun<Pos>(); // debugwrite
-
+    // board の初期化
     board = b;
-    init_fillpos();
-    pos_i = 0; // index of fillpos.
-
-    // Console.WriteLine( "debugwrite : fillpos : " + lf.to_s(fillpos) );
-  }
-  void init_fillpos() {
+    // fsboard の初期化
     foreach(int i in Range9.ary) {
       foreach(int j in Range9.ary) {
-	if (board[i,j]==0) { fillpos.Add(new Pos(i,j)); }
+	if (board[i,j]==0) {
+	  fsboard[i,j] = new FlagSeq(); // すべての flag が true である配列を生成して返す。
+	  initial_check_num(i,j);
+	}
+      }
+    }
+    // 最初の理詰め
+    logical_put(); // 確定したマスに数字を入れて、その影響計算を計算して……
+  }
+  void initial_check_num(int i, int j) {
+    // 位置 r,c に置けうる数の選択肢を、回りに置かれた数を見て絞る。
+    initial_check_num_rect(i,j, i,      0,       1,9);
+    initial_check_num_rect(i,j, 0,      j,       9,1);
+    initial_check_num_rect(i,j, (i/3)*3,(j/3)*3, 3,3);
+  }
+  void initial_check_num_rect(int r, int c, int top, int left, int nrow, int ncol) {
+    int i,j;
+    for(i=top; i<top+nrow; i++) {
+      for(j=left; j<left+ncol; j++) {
+	if (board[i,j]!=0) { fsboard[r,c][ board[i,j]-1 ] = false; }
+      }
+    }
+  }
+  // -------------------- logical_put --------------------
+  void logical_put() {
+    // 理詰めを行う。
+    // - flag が高々1本立ってるマスを見つける。
+    //   - 確定マスが取れた場合、そこに board 値を入れて、その影響を計算し、再び logical_put();
+    //   - 全滅マスが取れた場合は fail.
+    //   - 取れなかった場合はそのまま終わる。
+    Pos pos = new Pos(-1,-1);
+    // 確定してるマスを探す ... 候補が全滅してる
+    foreach(int i in Range9.ary) {
+      foreach(int j in Range9.ary) {
+	if ( board[i,j]==0 ) {
+	  if ( fsboard[i,j].decided() ) {
+	    // 確定マスが取れた場合
+	    pos = new Pos(i,j);
+	    break;
+	  } else if ( fsboard[i,j].all_false() ) {
+	    // 全滅マスが取れた場合
+	    //Console.WriteLine("\ndebugwrite : failed.");
+	    stack_pop();
+	    off_min();
+	    break;
+	  }
+	  // いずれとも異なる(2つ以上の選択肢がある)ならば、次のマスへ。
+	}
+      }
+    }
+    // 確定マスが取れた場合、そこに確定した数字を置いて、その影響を計算する。
+    if (pos.r>=0 && pos.c>0) {
+      put_min(pos);
+      // Console.WriteLine( "\ndebugwrite after put_min : " + Ary2d.to_sbs(board) );
+      logical_put();
+    }
+    // さもなくば、何もしない。
+  }
+  // -------------------- stack_pop, off_min --------------------
+  void stack_pop() {
+    int i=board_stack.Count-1, j=fsboard_stack.Count-1;
+    if (i>=0 && j>=0) {
+      // pop する。
+      board = board_stack[i];
+      board_stack.RemoveAt(i);
+      fsboard = fsboard_stack[j];
+      fsboard_stack.RemoveAt(j);
+    } else {
+      // 解けないと分かった。
+      private_cannot_sovle_flag = true;
+    }
+  }
+  void off_min() {
+    Pos pos = choose_pos();
+    FlagSeq fs = fsboard[pos.r, pos.c];
+    foreach(int i in Range9.ary) {
+      if (fs[i]==true){
+	fs[i] = false;
+	break;
+      }
+    }
+  }
+  // -------------------- put_min --------------------
+  void put_min(Pos pos) {
+    int r=pos.r, c=pos.c;
+    FlagSeq fs = fsboard[r,c];
+    int i;
+    // 置きにいく。
+    for(i=0; i<Range9.length; i++) { if (fs[i]==true) { break; } }
+    board[r,c] = i+1;    // flag を倒したりはしない(don't care)。
+    // 影響計算をする。
+    influence_rect(r,c, r,      0,       1,9);
+    influence_rect(r,c, 0,      c,       9,1);
+    influence_rect(r,c, (r/3)*3,(c/3)*3, 3,3);
+  }
+  void influence_rect(int r, int c, int top, int left, int nrow, int ncol) {
+    // 位置 r,c の数が他のマスの flagseq に与える影響を計算する。
+    int i,j;
+    for(i=top; i<top+nrow; i++) {
+      for(j=left; j<left+ncol; j++) {
+	if (board[i,j]==0) { fsboard[i,j][ board[r,c]-1 ] = false; }
       }
     }
   }
@@ -210,48 +309,60 @@ class SudokuSolver {
 
   // ---------------------- putnum ----------------------
   public void putnum() {
-    // - fillpos[pos_i] にある数 num を board からとる。
-    // - num+1 以上 9 以下の、同行・同列・同ブロックにあるどの数とも異なる数のうち、
-    //   最小のものを見つける。
-    //   - 見つかった場合、その数をその位置に置く。 pos_i++;
-    //   - 見つからなかった場合、 fillpos[pos_i] の位置に0を置く。その後 pos_i--;
-
-    Pos pos = fillpos[pos_i];
-    int num = board[pos.r, pos.c];
-    int? guess = next_guess(num, pos.r, pos.c);
-    if (guess.HasValue) {
-      board[pos.r, pos.c] = guess.Value;
-      pos_i++;
-    } else {
-      board[pos.r, pos.c] = 0;
-      pos_i--;
-    }
-    if ( pos_i<0 ) { private_cannot_sovle_flag = true; } // この問題は解けない！
-  }
-  int? next_guess(int num, int r, int c) {
-    // num+1 以上 9 以下の、同行・同列・同ブロックにあるどの数とも異なる数のうち、
-    // 最小のものを見つける。
-    // 見つかったらそれを返し、見つからなかったら null を返す。
-    int k;
-    for(k=num+1; k<=Range9.length; k++) {
-      if (!( exists_in_rect(k, r,      0,       1,9) ||
-	     exists_in_rect(k, 0,      c,       9,1) ||
-	     exists_in_rect(k, (r/3)*3,(c/3)*3, 3,3) )) { return k; }
-    }
-    return null;
-  }
-  bool exists_in_rect(int k, int top, int left, int nrow, int ncol) {
-    // top, left, nrow, ncol で指定される四角形の領域内に
-    //  k があれば true, さもなくば false を返す。
-    int i,j;
-    for(i=top; i<top+nrow; i++) {
-      for(j=left; j<left+ncol; j++) {
-	if (board[i,j]==k) { return true; }
+    // 仮の数を決めて置く(choose)。理詰めを行う。
+    // もし置けなければ fail. 
+    Pos pos = choose_pos(); // board に値が設定されていない位置の中から一つとる。
+    if (pos.r>=0 && pos.c>=0) {
+      if (! fsboard[pos.r, pos.c].all_false()) {
+	// 置ける数がある場合
+	stack_push();  // board と fsboard をそれぞれの stack に copy を push.
+	put_min(pos);  // 選択肢のうち、最小の数を置く。
+	logical_put(); // 理詰め。
+      } else {
+	// 置ける数がない場合 : fail.
+	stack_pop(); // board と fsboard に stack から pop した値を入れる。 pop できなければ解無し
+	off_min();   // 選択肢内の最小のものの flag を倒す。
       }
     }
-    return false;
+  }
+  // -------------------- choose_pos --------------------
+  Pos choose_pos() {
+    // board に値が設定されていない位置の中から一つとる。
+    foreach(int i in Range9.ary) {
+      foreach(int j in Range9.ary) {
+	if (board[i,j]==0) { return new Pos(i,j); }
+      }
+    }
+    return new Pos(-1,-1);
+  }
+  // -------------------- stack_push --------------------
+  void stack_push() {
+    // board と fsboard をそれぞれの stack に copy を push.
+    board_stack.Add( board_dup() );
+    fsboard_stack.Add( fsboard_dup() );
+  }
+  int [,] board_dup() {
+    int [,] b = new int [ Range9.length, Range9.length ];
+    foreach(int i in Range9.ary) {
+      foreach(int j in Range9.ary) {
+	b[i,j] = board[i,j];
+      }
+    }
+    return b;
+  }
+  FlagSeq [,] fsboard_dup() {
+    FlagSeq [,] fsb = new FlagSeq [ Range9.length, Range9.length ];
+    foreach(int i in Range9.ary) {
+      foreach(int j in Range9.ary) {
+	if (board[i,j]==0) { fsb[i,j] = new FlagSeq( fsboard[i,j] ); }
+      }
+    }
+    return fsb;
   }
 }
+//---------------------------------------------------------------------------------------------
+// Pos, FlagSeq
+//---------------------------------------------------------------------------------------------
 class Pos {
   int private_row;
   int private_col;
@@ -265,5 +376,26 @@ class Pos {
     return String.Format("r{0}c{1}", private_row, private_col);
   }
 }
-
+class FlagSeq {
+  bool [] private_fs = new bool [9];
+  public FlagSeq()           { foreach(int i in Range9.ary) { private_fs[i] = true;  } }
+  public FlagSeq(FlagSeq fs) { foreach(int i in Range9.ary) { private_fs[i] = fs[i]; } }//copy
+  public bool this[int i] { // indexer
+    get { return private_fs[i];  }
+    set { private_fs[i] = value; }
+  }
+  public bool decided() {
+    // flag がちょうど一本だけ立っていれば true, さもなくば false.
+    int ntrue = 0;
+    foreach(int i in Range9.ary) {
+      if (private_fs[i]==true && ++ntrue >= 2) { return false; }
+    }
+    return (ntrue==0 ? false : true);
+  }
+  public bool all_false() {
+    // flag がすべて false なら true, さもなくば false.
+    foreach(int i in Range9.ary) { if (private_fs[i]==true) { return false; } }
+    return true;
+  }
+}
 
